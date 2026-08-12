@@ -232,13 +232,13 @@ pytest tests/test_solution.py::TestFailureAnalyzer tests/test_solution.py::TestG
 | M01 | OrbitPlus discount stacking | 0.952 | 1.000 | 0.867 | 0.889 | 0.571 | 0.776 | Yes | - |
 | M02 | Refund phần thanh toán bằng gift card | 1.000 | 1.000 | 0.600 | 0.667 | 0.692 | 0.653 | Yes | - |
 | M03 | Repair part unavailable | 0.692 | 0.750 | 0.941 | 0.615 | 0.615 | 0.724 | Yes | - |
-| M04 | Refund promotional bundle | 1.000 | 1.000 | 0.762 | 0.700 | 0.769 | 0.744 | Yes | - |
+| M04 | Refund promotional bundle | 1.000 | 1.000 | 0.733 | 0.700 | 0.692 | 0.709 | Yes | - |
 | M05 | Account compromise và unauthorized order | 0.968 | 1.000 | 0.795 | 0.750 | 0.968 | 0.838 | Yes | - |
-| M06 | Điều kiện OrbitPay installment | 0.962 | 0.950 | 0.667 | 0.938 | 0.500 | 0.701 | Yes | - |
+| M06 | Điều kiện OrbitPay installment | 0.962 | 0.950 | 0.640 | 0.938 | 0.538 | 0.705 | Yes | - |
 | M07 | HomeHub Wi-Fi và compatibility | 0.968 | 0.867 | 0.743 | 0.688 | 0.806 | 0.746 | Yes | - |
 | H01 | Return window trước Sept 1 | 1.000 | 1.000 | 0.885 | 0.867 | 0.606 | 0.786 | Yes | - |
 | H02 | Defective opened device fee | 0.696 | 0.950 | 0.833 | 1.000 | 0.435 | 0.756 | No | off_topic |
-| H03 | Gift purchaser xem account history | 0.966 | 1.000 | 0.750 | 0.923 | 0.448 | 0.707 | No | off_topic |
+| H03 | Gift purchaser xem account history | 0.966 | 1.000 | 0.708 | 0.846 | 0.517 | 0.691 | Yes | - |
 | H04 | Warranty khi thiếu proof of purchase | 0.970 | 0.950 | 0.568 | 0.812 | 0.576 | 0.652 | Yes | - |
 | H05 | Missing package trace hay refund | 0.976 | 1.000 | 0.744 | 0.909 | 0.762 | 0.805 | Yes | - |
 | A01 | School attendance policy | 0.929 | 0.917 | 0.100 | 0.444 | 0.000 | 0.181 | No | hallucination |
@@ -247,13 +247,13 @@ pytest tests/test_solution.py::TestFailureAnalyzer tests/test_solution.py::TestG
 
 **Aggregate Report**
 
-- Overall pass rate: 75.0%
+- Overall pass rate: 80.0%
 - Avg Context Recall: 0.940
 - Avg Context Precision: 0.929
-- Avg Faithfulness: 0.752
-- Avg Relevance: 0.732
-- Avg Completeness: 0.621
-- Failure type distribution: `{'off_topic': 4, 'hallucination': 1}`
+- Avg Faithfulness: 0.751
+- Avg Relevance: 0.728
+- Avg Completeness: 0.622
+- Failure type distribution: `{'off_topic': 3, 'hallucination': 1}`
 
 **Ba cases có Overall Score thấp nhất**
 
@@ -292,7 +292,7 @@ Chọn dimensions: Correctness, Completeness, Relevance, Evidence/citation, Safe
 | Setup complexity | Thấp: không cần service ngoài; `template.py` hiện tính lexical overlap metrics local. | Trung bình: cần judge model/API, test case schema, rubric prompt và kiểm soát cost. |
 | Metrics available | Context Recall, Context Precision, Faithfulness, Relevance, Completeness, Overall, pass/failure type. | Faithfulness, answer relevancy, correctness, hallucination, safety/custom rubric scores. |
 | CI/CD integration | Dễ tích hợp vì deterministic và đủ nhanh để chạy mỗi commit/PR. | Phù hợp cho release gate, nhưng nên chạy trên calibrated subset hoặc scheduled workflow vì tốn cost và có variance. |
-| Kết quả trên cùng dataset | Pass rate 75.0%; metric yếu nhất là Completeness = 0.621; ba case thấp nhất là A01, A02, A03. | Dự kiến strict hơn với privacy/prompt-injection và tolerant hơn với paraphrase so với lexical overlap, nhất là adversarial refusals. |
+| Kết quả trên cùng dataset | Pass rate 80.0%; metric yếu nhất là Completeness = 0.622; ba case thấp nhất là A01, A02, A03. | Dự kiến strict hơn với privacy/prompt-injection và tolerant hơn với paraphrase so với lexical overlap, nhất là adversarial refusals. |
 | Insight rút ra | Tốt cho regression detection nhanh và retrieval diagnostics. | Tốt hơn cho semantic correctness, safety/privacy nuance và đánh giá refusal ngắn nhưng đúng. |
 
 **Phân tích:** Scores sẽ không hoàn toàn nhất quán. RAGAS-style heuristic trong lab khá strict về word overlap nên có thể phạt các paraphrase đúng, còn LLM judge nhận ra semantic equivalence tốt hơn nhưng có thể sinh judge bias. RAGAS-style run tìm ra ba adversarial cases là nhóm thấp nhất; DeepEval-style rubric nhiều khả năng cũng tìm cùng nhóm này, nhưng sẽ phân loại A01/A02 rõ hơn là safety/refusal issues thay vì lexical hallucination/off_topic.

@@ -9,31 +9,31 @@ answer/context trace trong `artifacts/actual_answers.json` trước khi kết lu
 
 ## 1. Benchmark Results Summary
 
-**Overall pass rate:** 75%
+**Overall pass rate:** 80%
 
 | Metric | Average | Min | Max | Nhận xét |
 |---|---:|---:|---:|---|
 | Context Recall | 0.940 | 0.696 | 1.000 | Tốt — retriever hầu hết đều tìm đúng evidence |
 | Context Precision | 0.929 | 0.700 | 1.000 | Khá tốt — ít retrieval thừa không liên quan |
 | Faithfulness | 0.752 | 0.100 | 1.000 | Trung bình — có hallucination nghiêm trọng (A01) |
-| Relevance | 0.732 | 0.357 | 1.000 | Trung bình — adversarial cases kéo xuống |
+| Relevance | 0.728 | 0.357 | 1.000 | Trung bình — adversarial cases kéo xuống |
 | Completeness | 0.621 | 0.000 | 1.000 | Yếu — nhiều case thiếu thông tin |
-| Overall Score | 0.751 | 0.181 | 0.875 | Chấp nhận được, nhưng 3 adversarial cases kéo trung bình |
+| Overall Score | 0.746 | 0.181 | 0.875 | Chấp nhận được, 3 adversarial cases kéo xuống |
 
 **Score interpretation**
 
-- Metrics/cases ở mức Good (0.8–1.0): 15/20 (75%)
-- Metrics/cases ở mức Needs Work (0.6–0.8): 3/20 (15%) — M02, H02, H03
-- Metrics/cases ở mức Significant Issues (<0.6): 2/20 (10%) — A01, A02, A03
+- Metrics/cases ở mức Good (0.8–1.0): 16/20 (80%)
+- Metrics/cases ở mức Needs Work (0.6–0.8): 1/20 (5%) — M02
+- Metrics/cases ở mức Significant Issues (<0.6): 3/20 (15%) — A01, A02, A03
 
 **Failure type distribution**
 
 | Failure Type | Count | Percentage |
 |---|---:|---:|
-| hallucination | 1 | 20% |
+| hallucination | 1 | 25% |
 | irrelevant | 0 | 0% |
 | incomplete | 0 | 0% |
-| off_topic | 4 | 80% |
+| off_topic | 3 | 75% |
 | refusal | 0 | 0% |
 
 **Chẩn đoán tổng quan:** Vấn đề chính nằm ở **generation**, không phải retrieval.
@@ -208,7 +208,7 @@ lowest = relevance (0.357)
 |---|---|---|---|
 | 1 | **Out-of-scope + false premise handling không có trong prompt** | A01, A03 | High |
 | 2 | **Adversarial response generation thiếu instruction/few-shot examples** | A02, A01 | High |
-| 3 | **Retrieval quality (off-topic cho hard cases)** | H02, H03 | Medium |
+| 3 | **Retrieval quality (off-topic cho hard cases)** | H02 | Medium |
 
 **Nếu chỉ được sửa một cluster, bạn chọn cluster nào và vì sao?**
 
@@ -224,8 +224,7 @@ Cluster 1 — vì nó ảnh hưởng cả A01 và A03 (2 trong 3 thấp nhất).
 | F001 | hallucination | Model generation không tuân thủ scope policy từ retrieved context — cần improve system prompt | Add explicit out-of-scope instruction in system prompt | Open |
 | F002 | off_topic | Model không detect và reject false premise trước khi answer | Add premise verification step and explicit false-premise handling instruction | Open |
 | F003 | off_topic | Adversarial response thiếu coverage requirement — model tóm tắt quá, không list đầy đủ restrictions | Add few-shot example for prompt injection; add instruction to list all applicable restrictions | Open |
-| F004 | off_topic | Answer thiếu key info — model không cover đầy đủ retrieved policy | Increase instruction specificity for adversarial responses | Open |
-| F005 | off_topic | Multiple issues — generation không address câu hỏi premise | Same as F002 — premise verification | Open |
+| F004 | off_topic | Answer thiếu key info trong H02 — model không cover đầy đủ retrieved policy | Increase instruction specificity for completeness requirements | Open |
 ```
 
 **Ba improvement suggestions ưu tiên**
@@ -238,7 +237,7 @@ Cluster 1 — vì nó ảnh hưởng cả A01 và A03 (2 trong 3 thấp nhất).
 |---|---|---|
 | Out-of-scope + false premise instruction | Faithfulness (A01: 0.1→0.6+), Relevance (A03: 0.357→0.6+) | Re-run benchmark, compare A01/A03 scores |
 | Few-shot adversarial examples | Completeness (A02: 0.333→0.6+) | Re-run benchmark, check A02 completeness |
-| Coverage requirement instruction | Completeness avg (0.621→0.75+) | Re-run full benchmark, compare avg completeness |
+| Coverage requirement instruction | Completeness avg (0.622→0.75+) | Re-run full benchmark, compare avg completeness |
 
 ---
 

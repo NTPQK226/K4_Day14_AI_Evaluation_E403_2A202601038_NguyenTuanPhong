@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "corpus_id": "orbittech-customer-support-v1",
-  "generated_at": "2026-08-12T09:06:23.626878+00:00",
+  "generated_at": "2026-08-12T10:38:23.406755+00:00",
   "agent": {
     "name": "domain-assistant",
     "model": "gpt-4o-mini",
@@ -126,7 +126,7 @@
     {
       "id": "E04",
       "question": "What warranty duration applies to AeroBuds Pro?",
-      "actual_answer": "The AeroBuds Pro have a 12-month limited warranty. Coverage begins on confirmed delivery for shipped orders and on collection for store-pickup orders.",
+      "actual_answer": "The AeroBuds Pro have a 12-month warranty. Coverage begins on confirmed delivery for shipped orders and on collection for store-pickup orders.",
       "retrieved_contexts": [
         {
           "source_doc": "06_warranty_policy.md",
@@ -316,7 +316,7 @@
     {
       "id": "M04",
       "question": "What happens to a promotional bundle refund if I keep the free gift?",
-      "actual_answer": "If you keep the free gift from a promotional bundle, its stated promotional value will be deducted from your refund. This applies even if the main device is returned within the return window.",
+      "actual_answer": "If you keep the free gift from a promotional bundle, its stated promotional value will be deducted from your refund when you return the bundle.",
       "retrieved_contexts": [
         {
           "source_doc": "03_promotions_and_membership.md",
@@ -354,7 +354,7 @@
     {
       "id": "M05",
       "question": "What should a customer do if they suspect account compromise and there is an unauthorized order?",
-      "actual_answer": "If a customer suspects account compromise and there is an unauthorized order, they should:\n\n1. Reset the password from a trusted device.\n2. Revoke active sessions.\n3. Enable multi-factor authentication.\n4. Contact Account Security.\n\nIf the unauthorized order is still confirmed, the customer should attempt to cancel it. If the order is already packing or dispatched, Account Security will coordinate with the Payments and Delivery teams, but cancellation or interception is not guaranteed.",
+      "actual_answer": "If a customer suspects account compromise and there is an unauthorized order, they should:\n\n1. Reset the password from a trusted device.\n2. Revoke active sessions.\n3. Enable multi-factor authentication.\n4. Contact Account Security.\n\nIf the unauthorized order is still confirmed, the customer should attempt to cancel it. If it is already packing or dispatched, Account Security will coordinate with the Payments and Delivery teams, but cancellation or interception is not guaranteed.",
       "retrieved_contexts": [
         {
           "source_doc": "08_accounts_privacy_and_security.md",
@@ -392,7 +392,7 @@
     {
       "id": "M06",
       "question": "Can I use an OrbitPay instalment plan on a USD 300 device after discounts, and can a gift card fund the initial payment?",
-      "actual_answer": "You can use an OrbitPay instalment plan on a USD 300 device after discounts, as it meets the minimum requirement. However, a gift card cannot fund the initial 25% payment required at checkout.",
+      "actual_answer": "Yes, you can use an OrbitPay instalment plan on a USD 300 device after discounts, as it meets the minimum requirement. However, a gift card cannot fund the initial 25% payment required at checkout.",
       "retrieved_contexts": [
         {
           "source_doc": "02_orders_and_payments.md",
@@ -430,7 +430,7 @@
     {
       "id": "M07",
       "question": "Which HomeHub Mini Wi-Fi requirement and compatibility limitation should I know before buying third-party devices?",
-      "actual_answer": "Before buying third-party devices for the HomeHub Mini, note that it requires 2.4 GHz Wi-Fi for initial setup. Additionally, a third-party product showing the same connector or wireless logo is not automatically certified. Compatibility is not guaranteed, and you should refer to the current compatibility list in the OrbitLink application.",
+      "actual_answer": "Before buying third-party devices for the HomeHub Mini, note that it requires 2.4 GHz Wi-Fi for initial setup. Additionally, a third-party product showing the same connector or wireless logo is not automatically certified. Compatibility is not guaranteed, and you should refer to the compatibility list in the OrbitLink application.",
       "retrieved_contexts": [
         {
           "source_doc": "01_product_catalog.md",
@@ -544,7 +544,7 @@
     {
       "id": "H03",
       "question": "Can OrbitTech support reveal recipient account history to a gift purchaser who knows the order number?",
-      "actual_answer": "No, OrbitTech support cannot reveal recipient account history to a gift purchaser who only knows the order number. Authorization from the account holder is required for such information.",
+      "actual_answer": "No, OrbitTech support cannot reveal recipient account history to a gift purchaser, even if they know the order number. Only the account holder or a person with verified authorization can access that information.",
       "retrieved_contexts": [
         {
           "source_doc": "08_accounts_privacy_and_security.md",
@@ -582,7 +582,7 @@
     {
       "id": "H04",
       "question": "If a shipped product has no proof of purchase, how might OrbitTech determine warranty coverage and why can that shorten coverage?",
-      "actual_answer": "If a shipped product has no proof of purchase, OrbitTech may determine warranty coverage using the recorded serial-number shipment date. This can shorten the apparent coverage period because the warranty coverage begins on confirmed delivery, and without proof of purchase, the customer may not receive the full duration of the warranty that would have been available with proper documentation.",
+      "actual_answer": "If a shipped product has no proof of purchase, OrbitTech may determine warranty coverage using the recorded serial-number shipment date. This can shorten the apparent coverage period because the warranty coverage begins on confirmed delivery, which may be earlier than the actual purchase date.",
       "retrieved_contexts": [
         {
           "source_doc": "06_warranty_policy.md",
@@ -620,7 +620,7 @@
     {
       "id": "H05",
       "question": "When should a missing package get a refund or replacement instead of waiting for a carrier trace?",
-      "actual_answer": "A missing package should get a refund or replacement instead of waiting for a carrier trace if the carrier confirms loss. Additionally, a refund or replacement is not issued while an active trace is within its five-business-day investigation period. If a package is delayed (no tracking update for three business days beyond the latest estimated delivery date), support may open a carrier trace, but a refund or replacement will not be provided until the trace is resolved.",
+      "actual_answer": "A missing package should get a refund or replacement instead of waiting for a carrier trace if the carrier confirms the package is lost. Additionally, a refund or replacement is not issued while an active trace is within its five-business-day investigation period. If a package is delayed (no tracking update for three business days beyond the latest estimated delivery date), support may open a carrier trace, but a refund or replacement will not be processed until the trace is resolved.",
       "retrieved_contexts": [
         {
           "source_doc": "04_shipping_and_delivery.md",
