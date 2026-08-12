@@ -405,8 +405,7 @@ class LLMJudge:
     """
 
     def __init__(self, judge_llm_fn: Callable[[str], str]) -> None:
-        # TODO: store judge_llm_fn
-        pass
+        self.judge_llm_fn = judge_llm_fn
 
     def score_response(
         self,
@@ -438,8 +437,68 @@ class LLMJudge:
                 "reasoning": str,               # raw LLM explanation
             }
         """
-        # TODO
-        raise NotImplementedError("Implement score_response")
+        # Build rubric string
+        rubric_str = "\n".join([f"- {k}: {v}" for k, v in rubric.items()])
+
+        # Build judge prompt
+        prompt = f"""You are an expert judge evaluating AI responses.
+
+Question: {question}
+
+Answer to evaluate: {answer}
+
+Rubric:
+{rubric_str}
+
+Respond with a JSON object containing:
+1. "scores": a dict mapping each criterion to a score between 0.0 and 1.0
+2. "reasoning": a brief explanation of the scores
+
+Example format:
+{{"scores": {{"accuracy": 0.8, "clarity": 0.7}}, "reasoning": "The answer is mostly accurate..."}}
+"""
+
+        # Call judge LLM
+        raw_response = self.judge_llm_fn(prompt)
+
+        # Try to parse JSON from response
+        scores = {}
+        for criterion in rubric.keys():
+            scores[criterion] = 0.5  # default
+
+        reasoning = raw_response
+
+        # Try to extract JSON
+        import json
+        try:
+            # Try direct parse
+            parsed = json.loads(raw_response)
+            if "scores" in parsed and isinstance(parsed["scores"], dict):
+                for k, v in parsed["scores"].items():
+                    if isinstance(v, (int, float)) and 0 <= v <= 1:
+                        scores[k] = float(v)
+            if "reasoning" in parsed:
+                reasoning = str(parsed["reasoning"])
+        except json.JSONDecodeError:
+            # Try to find JSON in the response
+            import re
+            json_match = re.search(r'\{[^{}]*"scores"[^{}]*\}', raw_response, re.DOTALL)
+            if json_match:
+                try:
+                    parsed = json.loads(json_match.group())
+                    if "scores" in parsed and isinstance(parsed["scores"], dict):
+                        for k, v in parsed["scores"].items():
+                            if isinstance(v, (int, float)) and 0 <= v <= 1:
+                                scores[k] = float(v)
+                    if "reasoning" in parsed:
+                        reasoning = str(parsed["reasoning"])
+                except json.JSONDecodeError:
+                    pass
+
+        return {
+            "scores": scores,
+            "reasoning": reasoning,
+        }
 
     def detect_bias(self, scores_batch: list[dict[str, Any]]) -> dict[str, Any]:
         """
@@ -460,8 +519,40 @@ class LLMJudge:
                 "severity_bias":   bool,
             }
         """
-        # TODO
-        raise NotImplementedError("Implement detect_bias")
+        if not scores_batch:
+            return {
+                "positional_bias": False,
+                "leniency_bias": False,
+                "severity_bias": False,
+            }
+
+        # Check positional bias: first response scores higher than second
+        positional_bias = False
+        if len(scores_batch) >= 2:
+            first_scores = list(scores_batch[0].get("scores", {}).values())
+            second_scores = list(scores_batch[1].get("scores", {}).values())
+            if first_scores and second_scores:
+                first_avg = sum(first_scores) / len(first_scores)
+                second_avg = sum(second_scores) / len(second_scores)
+                if first_avg > second_avg + 0.1:  # first is notably higher
+                    positional_bias = True
+
+        # Check leniency bias: average score > 0.8
+        all_scores = []
+        for batch in scores_batch:
+            all_scores.extend(list(batch.get("scores", {}).values()))
+        leniency_bias = False
+        severity_bias = False
+        if all_scores:
+            avg_score = sum(all_scores) / len(all_scores)
+            leniency_bias = avg_score > 0.8
+            severity_bias = avg_score < 0.3
+
+        return {
+            "positional_bias": positional_bias,
+            "leniency_bias": leniency_bias,
+            "severity_bias": severity_bias,
+        }
 
 
 # ---------------------------------------------------------------------------
