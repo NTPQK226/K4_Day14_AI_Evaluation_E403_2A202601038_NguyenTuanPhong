@@ -30,11 +30,11 @@ critical.
 
 | Metric | Acceptable Low Score Scenario | Critical Low Score Scenario | Action Required |
 |---|---|---|---|
-| Faithfulness | | | |
-| Answer Relevance | | | |
-| Context Recall | | | |
-| Context Precision | | | |
-| Completeness | | | |
+| Faithfulness | Khi context ngắn hoặc toàn stopwords; answer đúng nhưng không chứa nhiều từ từ context | Khi retrieval tốt (Context Recall cao) nhưng Faithfulness thấp → generation bịa đặt | Thêm grounding guardrail, kiểm tra hallucination |
+| Answer Relevance | Khi question ngắn hoặc ambiguous; answer đúng nhưng dùng từ khác | Khi answer đúng nhưng không đúng intent của question | Cải thiện prompt, thêm clarifying questions |
+| Context Recall | Khi expected answer chứa thông tin hiếm không có trong corpus | Khi nhiều cases cùng Recall thấp → retriever bỏ sót evidence | Cải thiện retrieval: tăng top-k, đổi chunking strategy |
+| Context Precision | Khi cần lấy nhiều chunks để cover expected answer | Khi relevant chunks bị buried dưới noise → ranking kém | Implement reranking, cải thiện retrieval score function |
+| Completeness | Khi expected answer rất dài hoặc chứa nhiều details khó cover | Khi Recall tốt nhưng Completeness thấp → generation không tổng hợp đủ | Tăng context window, thêm few-shot examples |
 
 ### Exercise 1.2 — Bias trong LLM-as-a-Judge
 
@@ -47,14 +47,30 @@ Ba bias thường gặp:
 **Câu 1: Thiết kế experiment phát hiện position bias với ít nhất hai conditions.**
 
 > *Câu trả lời:*
+> **Experiment design:**
+> - **Condition A (control):** Pair A trước, Pair B sau. Đo score của cả hai.
+> - **Condition B (treatment):** Đổi thứ tự — Pair B trước, Pair A sau.
+> - **Hypothesis:** Nếu position bias tồn tại, pair đứng trước sẽ có score cao hơn trong cả hai conditions.
+> - **Metric:** Δscore = score_pair_trước - score_pair_sau. Nếu Δ > threshold (e.g., 0.1), position bias confirmed.
+> - **Control variables:** Dùng cùng một cặp câu trả lời, chỉ đổi thứ tự hiển thị.
 
 **Câu 2: Làm thế nào giảm verbosity bias bằng rubric design?**
 
 > *Câu trả lời:*
+> 1. **Normalize by length:** Thêm rubric rule: "Length alone does NOT affect score. A short, precise answer can score higher than a verbose one."
+> 2. **Penalize redundancy:** Thêm dimension "Conciseness" với clear rule: redundant information → deductions.
+> 3. **Fix content quota:** Yêu cầu answer phải cover đủ N key points; không thưởng extra length.
+> 4. **Use paired comparison:** Thay vì absolute scoring, so sánh hai answers cùng content → loại bỏ length factor.
+> 5. **Include length metric in output:** Yêu cầu judge report token count → tạo accountability.
 
 **Câu 3: Tại sao cần calibrate LLM judge với human labels?**
 
 > *Câu trả lời:*
+> 1. **Ground truth verification:** Không có human labels, không biết judge có đang đo đúng thứ mình muốn không.
+> 2. **Bias detection:** Human labels giúp phát hiện systematic biases (position, verbosity, self-preference) mà judge mắc phải.
+> 3. **Threshold calibration:** Raw LLM scores (1-5) cần được mapped sang domain-specific thresholds. Human labels tạo anchor point.
+> 4. **Domain adaptation:** LLM pretrained general knowledge có thể sai domain-specific rules. Calibration với human expert domain alignment.
+> 5. **Confidence estimation:** So sánh judge vs human agreement rate → biết khi nào tin judge, khi nào cần human review.
 
 ### Exercise 1.3 — Evaluation trong CI/CD
 
@@ -62,13 +78,29 @@ Ba bias thường gặp:
 
 | Metric | Threshold | Lý do |
 |---|---:|---|
-| Faithfulness | | |
-| Answer Relevance | | |
-| Completeness | | |
+| Faithfulness | **0.7** | Nếu <0.7 → >30% claims không grounded → không an toàn deploy, có thể mislead customers |
+| Answer Relevance | **0.6** | Nếu <0.6 → answer không đúng intent →用户体验差, có thể giải quyết sai vấn đề |
+| Completeness | **0.6** | Nếu <0.6 → bỏ sót critical info → có thể gây complaints, returns, hoặc safety issues |
 
 **Câu 2: Khi nào dùng offline evaluation, online evaluation và human review?**
 
 > *Câu trả lời:*
+> **Offline Evaluation:**
+> - Dùng khi: Mỗi code release, mỗi prompt change, trigger pre-defined schedule
+> - Công cụ: RAGAS, DeepEval
+> - Phù hợp: Regression detection, A/B comparison, benchmark reproducibility
+> - Ví dụ: Trước khi deploy v2.1, chạy full suite trên golden dataset → pass rate < 80% → block deployment
+>
+> **Online Evaluation:**
+> - Dùng khi: Continuous production traffic, cần real-time monitoring
+> - Công cụ: TruLens, Langfuse
+> - Phù hợp: Phát hiện drift theo thời gian, monitoring user satisfaction trends
+> - Ví dụ: Production dashboard show Faithfulness trending down 0.75→0.68 → alert team
+>
+> **Human Review:**
+> - Dùng khi: High-stakes decisions, ambiguous cases, new domain launch
+> - Phù hợp: Calibration LLM judge, edge cases không thể automate, safety-critical content
+> - Ví dụ: Healthcare/finance domain → human expert review mọi answer trước khi scale
 
 ---
 
