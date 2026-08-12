@@ -135,10 +135,14 @@ Full pipeline:
 - Nếu có `contexts`, tính và lưu thêm Context Recall và Context Precision.
 - Retrieval scores không làm thay đổi `overall_score()` và pass rule gốc.
 
+**✅ CP2-Task2: 14 passed, 1 skipped** (TestRAGASEvaluator + TestContextMetrics + TestRetrievalMetricWiring)
+
 ### Task 3 — LLMJudge
 
 - `score_response(question, answer, rubric)`
 - `detect_bias(scores_batch)`
+
+**✅ CP2-Task3: 4 passed** (TestLLMJudge)
 
 ### Task 4 — BenchmarkRunner
 
