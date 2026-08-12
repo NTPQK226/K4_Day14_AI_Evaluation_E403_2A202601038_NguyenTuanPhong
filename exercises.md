@@ -114,6 +114,8 @@ Hoàn thiện các TODO bắt buộc trong `template.py`.
 - `EvalResult`: answer-side scores, optional retrieval scores, pass/failure fields.
 - `overall_score()`: trung bình Faithfulness, Relevance và Completeness.
 
+**✅ CP2-Task1: 3 tests passed** (TestEvalResultOverallScore)
+
 ### Task 2 — RAGASEvaluator
 
 Answer-side:
