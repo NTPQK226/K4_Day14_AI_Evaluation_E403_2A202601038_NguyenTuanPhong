@@ -161,8 +161,15 @@ class RAGASEvaluator:
         Returns:
             float in [0.0, 1.0] — 1.0 = fully grounded in context.
         """
-        # TODO
-        raise NotImplementedError("Implement evaluate_faithfulness")
+        if not answer:
+            return 1.0
+        answer_tokens = _tokenize(answer)
+        if not answer_tokens:
+            return 1.0
+        context_tokens = _tokenize(context)
+        overlap = answer_tokens & context_tokens
+        score = len(overlap) / len(answer_tokens)
+        return max(0.0, min(1.0, score))
 
     def evaluate_relevance(self, answer: str, question: str) -> float:
         """
@@ -175,8 +182,15 @@ class RAGASEvaluator:
         Returns:
             float in [0.0, 1.0]
         """
-        # TODO
-        raise NotImplementedError("Implement evaluate_relevance")
+        if not question:
+            return 1.0
+        question_tokens = _tokenize(question)
+        if not question_tokens:
+            return 1.0
+        answer_tokens = _tokenize(answer)
+        overlap = answer_tokens & question_tokens
+        score = len(overlap) / len(question_tokens)
+        return max(0.0, min(1.0, score))
 
     def evaluate_completeness(self, answer: str, expected: str) -> float:
         """
@@ -189,8 +203,15 @@ class RAGASEvaluator:
         Returns:
             float in [0.0, 1.0]
         """
-        # TODO
-        raise NotImplementedError("Implement evaluate_completeness")
+        if not expected:
+            return 1.0
+        expected_tokens = _tokenize(expected)
+        if not expected_tokens:
+            return 1.0
+        answer_tokens = _tokenize(answer)
+        overlap = answer_tokens & expected_tokens
+        score = len(overlap) / len(expected_tokens)
+        return max(0.0, min(1.0, score))
 
     # -----------------------------------------------------------------------
     # Task 2b — Retrieval-side metrics (evaluate the GET-CONTEXT step)
@@ -211,8 +232,18 @@ class RAGASEvaluator:
 
         Low recall => retriever missed evidence the answer needs.
         """
-        # TODO
-        raise NotImplementedError("Implement evaluate_context_recall")
+        if not expected:
+            return 1.0
+        expected_tokens = _tokenize(expected)
+        if not expected_tokens:
+            return 1.0
+        # Union of all chunks
+        union_tokens: set[str] = set()
+        for chunk in contexts:
+            union_tokens.update(_tokenize(chunk))
+        overlap = expected_tokens & union_tokens
+        score = len(overlap) / len(expected_tokens)
+        return max(0.0, min(1.0, score))
 
     def evaluate_context_precision(
         self,
@@ -232,8 +263,35 @@ class RAGASEvaluator:
         Return 1.0 if expected empty; 0.0 if no chunks or none relevant.
         Reordering relevant chunks earlier (reranking) raises this score.
         """
-        # TODO
-        raise NotImplementedError("Implement evaluate_context_precision")
+        if not expected:
+            return 1.0
+        if not contexts:
+            return 0.0
+        expected_tokens = _tokenize(expected)
+        if not expected_tokens:
+            return 1.0
+        # Determine which chunks are relevant (binary)
+        num_chunks = len(contexts)
+        is_relevant: list[bool] = []
+        for chunk in contexts:
+            chunk_tokens = _tokenize(chunk)
+            overlap = chunk_tokens & expected_tokens
+            relevance = len(overlap) / len(expected_tokens)
+            is_relevant.append(relevance >= relevance_threshold)
+        num_relevant = sum(is_relevant)
+        if num_relevant == 0:
+            return 0.0
+        # Calculate AP@K using binary relevance indicator
+        ap_sum = 0.0
+        for k in range(num_chunks):
+            # Precision@k = (#relevant in top-k) / k
+            num_relevant_in_top_k = sum(is_relevant[:k+1])
+            precision_at_k = num_relevant_in_top_k / (k + 1)
+            # relevant_k is binary (1 if chunk at position k is relevant, 0 otherwise)
+            relevant_k = 1 if is_relevant[k] else 0
+            ap_sum += precision_at_k * relevant_k
+        score = ap_sum / num_relevant
+        return max(0.0, min(1.0, score))
 
     def run_full_eval(
         self,
@@ -265,8 +323,46 @@ class RAGASEvaluator:
         Returns:
             EvalResult with all fields populated.
         """
-        # TODO
-        raise NotImplementedError("Implement run_full_eval")
+        # Calculate answer-side metrics
+        faithfulness = self.evaluate_faithfulness(answer, context)
+        relevance = self.evaluate_relevance(answer, question)
+        completeness = self.evaluate_completeness(answer, expected)
+
+        # Determine passed and failure_type
+        passed = faithfulness >= 0.5 and relevance >= 0.5 and completeness >= 0.5
+
+        failure_type = None
+        if not passed:
+            if faithfulness < 0.3:
+                failure_type = "hallucination"
+            elif relevance < 0.3:
+                failure_type = "irrelevant"
+            elif completeness < 0.3:
+                failure_type = "incomplete"
+            else:
+                failure_type = "off_topic"
+
+        # Create dummy QAPair for EvalResult
+        qa_pair = QAPair(question=question, expected_answer=expected, context=context)
+
+        # Calculate retrieval metrics if contexts provided
+        context_recall = None
+        context_precision = None
+        if contexts is not None:
+            context_recall = self.evaluate_context_recall(contexts, expected)
+            context_precision = self.evaluate_context_precision(contexts, expected)
+
+        return EvalResult(
+            qa_pair=qa_pair,
+            actual_answer=answer,
+            faithfulness=faithfulness,
+            relevance=relevance,
+            completeness=completeness,
+            passed=passed,
+            failure_type=failure_type,
+            context_precision=context_precision,
+            context_recall=context_recall,
+        )
 
 
 # ---------------------------------------------------------------------------
